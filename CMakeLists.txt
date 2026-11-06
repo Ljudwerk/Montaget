@@ -73,11 +73,10 @@ juce_add_plugin(Montaget
     IS_SYNTH                    TRUE
     NEEDS_MIDI_INPUT            TRUE
     NEEDS_MIDI_OUTPUT           FALSE
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    MICROPHONE_PERMISSION_TEXT  "Montaget behöver mikrofonen för att spela in ljud till en plats i appen."
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
-    # Appen läser ljudkortets ingång: utan texten stänger macOS appen när den ber om mikrofonen.
-    MICROPHONE_PERMISSION_ENABLED TRUE
-    MICROPHONE_PERMISSION_TEXT  "Montaget spelar in ljud från mikrofonen eller ljudkortets ingång till sina platser."
     COPY_PLUGIN_AFTER_BUILD     FALSE
     VST3_CATEGORIES             Instrument Sampler
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
@@ -89,15 +88,15 @@ clap_juce_extensions_plugin(TARGET Montaget
 
 add_dependencies(Montaget_All Montaget_CLAP)
 
-# Appen: eget fönster (krang/app/Fristaende.h) i stället för JUCE:s standardfönster.
-target_sources(Montaget_Standalone PRIVATE Source/app/App.cpp)
-target_compile_definitions(Montaget_Standalone PRIVATE JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
 
 set(MO_SOURCES
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp)
 
-target_sources(Montaget PRIVATE ${MO_SOURCES})
+# Appen har ett eget fönster (Source/app/App.cpp, krang/app/Fristaende.h). Filen byggs in i den delade koden
+# och definitionen gäller hela pluginet, som i Pianot – annars får appen två olika versioner av JUCE:s
+# fristående kod, och minnet förstörs när fönstret öppnas.
+target_sources(Montaget PRIVATE ${MO_SOURCES} Source/app/App.cpp)
 target_include_directories(Montaget PRIVATE Source)
 
 set(MO_DEFINITIONS
@@ -106,7 +105,7 @@ set(MO_DEFINITIONS
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0)   # Tillåtet under AGPLv3 / JUCE:s fria licens
 
-target_compile_definitions(Montaget PUBLIC ${MO_DEFINITIONS})
+target_compile_definitions(Montaget PUBLIC ${MO_DEFINITIONS} JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
 
 target_link_libraries(Montaget
     PRIVATE

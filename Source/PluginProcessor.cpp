@@ -7,11 +7,12 @@ using namespace mo;
 juce::AudioProcessor::BusesProperties MontagetProcessor::bussar()
 {
     auto b = BusesProperties().withOutput ("Huvud", juce::AudioChannelSet::stereo(), true);
-    if (juce::PluginHostType::getPluginLoadedAs() != juce::AudioProcessor::wrapperType_AudioUnit)
-    {
+    const auto vard = juce::PluginHostType::getPluginLoadedAs();
+    if (vard != juce::AudioProcessor::wrapperType_AudioUnit)
         for (int g = 1; g <= 4; ++g) b = b.withOutput ("Grupp " + juce::String (g), juce::AudioChannelSet::stereo(), false);
+    // Ingången (inspelning till en plats): sidokedjan i pluginet, mikrofonen i appen.
+    if (vard != juce::AudioProcessor::wrapperType_AudioUnit)
         b = b.withInput (juce::String::fromUTF8 ("Ingång"), juce::AudioChannelSet::stereo(), true);
-    }
     return b;
 }
 

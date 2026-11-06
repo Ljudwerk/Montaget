@@ -3,7 +3,7 @@
 // saxen byggs i fas 1.
 //
 // Bussarna: stereo ut (Huvud) och fyra stereogrupper (av från början, för platser som ska till egna spår),
-// och en ingång för inspelning (sidokedjan). I AU finns bara huvudutgången, som i Pannrummet – flera bussar
+// och en ingång för inspelning (sidokedjan i pluginet, mikrofonen i appen). I AU finns bara huvudutgången, som i Pannrummet – flera bussar
 // i AU provas i en senare fas.
 //
 // Copyright (C) 2026 Montaget-teamet. Licens: AGPLv3, se LICENSE.

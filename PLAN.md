@@ -23,6 +23,7 @@ Det här måste finnas:
 
 - **Egna filer:** WAV, AIFF och FLAC dras in eller väljs. De läses i en egen tråd, och instrumentet spelar tyst tills ljudet är inne.
 - **Inspelning från ingången:** sidokedjan i pluginet eller mikrofonen i appen, med tröskelstart. Montaget samplar det som spelas.
+  - *6 november 2026: mikrofonen togs först bort ur appen och lades sedan tillbaka (Mikke: "det kan vara kul att testa på"). Appen ber om mikrofonen när den startar; ingången är tyst från början, som i Röstverket.*
 - **Saxen:** start, slut, loop (fram och fram-bak), baklänges, toning och hackning i 4–32 bitar efter transienter eller raster.
 - **Datorns färg:** sampletakt 8–44,1 kHz utan filter före, 8/12/16 bitar och utfilter (rekonstruktion av, mjukt eller hårt). Det är 80-talssamplerns grovhet.
 - **Spelsätten:** kromatiskt (en plats över hela klaviaturen), plattor (en plats per tangent, för trummor och stötar) och hackat (bitarna på tangenterna).
@@ -53,7 +54,11 @@ Det här måste finnas:
 
 - **Att fylla en plats:** dra in en fil, välj en fil, spela in eller välj ett fabriksljud.
 - **Inläsningen:** filen läses i en egen tråd (`krang/samplingar/Laddaren.h`) till 32-bitars flyttal i minnet, högst 60 s per plats.
-- **Var platserna sparas:** se öppna frågor.
+- **Var platserna sparas:** projektet sparar ljudets sökväg, och Montaget lägger en kopia i `~/Library/Application Support/Montaget/Ljud/` (beslut 6 november 2026).
+  - Kopian får ett namn efter innehållet (en kontrollsumma), så att samma ljud bara sparas en gång och två filer med samma namn inte krockar.
+  - När projektet öppnas läses originalfilen om den finns; annars kopian. Saknas båda visas platsen som saknad på skärmen, med en sökfunktion.
+  - Inspelningar från ingången har inget original och sparas bara som kopia.
+  - Kopiorna rensas aldrig av sig själva; MENY visar hur mycket de tar och kan visa mappen.
 
 ### Inspelningen
 
@@ -227,7 +232,7 @@ Regler:
 - *Pluginets panel ritas med samma kod och visar den valda platsens värden. Platsknapparna väljer plats, och skärmen visar TOM PLATS med remsan FAS 0 – EJ INKOPPLAD.*
 - *Ritningstider på Linux: bakgrunden 40 ms och 150 ms (100 % och 200 %, en gång), reglagen 25 ms och 60 ms per omritning. Skärmen ska cachas i fas 3; målet är under 1 % CPU på M1.*
 - *pluginval nivå 5 på VST3 går igenom på Linux, med editortesterna. AU, CLAP, appen och Reaper är inte provade på Macen.*
-- *Rättning (6 november 2026): appen kraschade när den startades på Macen, eftersom den läser ljudkortets ingång utan att ha frågat om mikrofonen (`NSMicrophoneUsageDescription` saknades). CMakeLists.txt har nu `MICROPHONE_PERMISSION_ENABLED` med en text på svenska.*
+- *Rättning (6 november 2026): appen kraschade när fönstret öppnades på Macen (minnet förstördes i `NSViewComponentPeer`). Orsaken var att `App.cpp` och `JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP` bara låg på `Montaget_Standalone`, så att JUCE:s delade kod byggdes med en annan inställning än appen. Nu ligger båda på det delade målet, som i Pianot, och `App.cpp` är skyddad med `#if`. Mikrofonen var alltså inte orsaken. Appen startar (Mikke, 6 november 2026).*
 - *Ljuden i `sounds/` (sex filer från Freesound) används för att prova arkivet i fas 1. Varje fils licens ska kontrolleras innan något används i ett program, och inget checkas in.*
 
 ### Fas 1 – Rösterna och Arkivet
@@ -269,7 +274,7 @@ Regler:
 
 | Risk | Motåtgärd |
 | --- | --- |
-| Projekt som tappar sina ljud när filer flyttas | Se öppna frågor. Saknade ljud visas tydligt på skärmen, och en sökfunktion finns. |
+| Projekt som tappar sina ljud när filer flyttas | Kopian i `Application Support` (se Arkivet). Saknade ljud visas tydligt på skärmen, och en sökfunktion finns. |
 | Minnet växer med 16 långa ljud | Högst 60 s per plats. Minnet mäts och visas i MENY. |
 | Klick vid hackning och loop | Korta toningar vid varje bit och sömmarna testas i MORender. |
 | Omfånget växer mot en DAW i pluginet | "Inte i 1.0" gäller. Ingen sekvenser och ingen effektkedja. |
@@ -279,11 +284,4 @@ Regler:
 - **Namnet är Montaget, modell MO-85** (beslut 6 november 2026).
 - *Förslag (6 november 2026):* världen **datorstudion**, inga inspelade fabriksljud (pluginet kan spridas) och koderna ovan.
 
-Öppna frågor:
-
-- **Var sparas ljuden i ett projekt?** Alternativen:
-  - som sökväg
-  - som sökväg plus en kopia i `~/Library/Application Support/Montaget/Ljud/`
-  - inbäddat i projektets tillstånd (projektet blir stort)
-  
-  Doktor Krangs förslag är sökväg plus kopia.
+- **Ljuden i ett projekt sparas som sökväg plus en kopia** i `~/Library/Application Support/Montaget/Ljud/`, enligt Doktor Krangs förslag (beslut 6 november 2026). Inte inbäddat i projektets tillstånd, som skulle bli stort.
