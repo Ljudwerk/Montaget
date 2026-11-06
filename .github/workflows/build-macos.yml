@@ -1,0 +1,64 @@
+# Bygg, testa och validera Montaget på macOS. Kopierad från KrangBox och anpassad.
+# krang-libs hämtas bredvid (repot KrangLibs); är det privat behövs en token i KRANG_LIBS_TOKEN.
+name: Bygg macOS
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: montaget
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mikkeschiren/KrangLibs
+          path: krang-libs
+          token: ${{ secrets.KRANG_LIBS_TOKEN || github.token }}
+
+      - name: Cache för beroenden
+        uses: actions/cache@v4
+        with:
+          path: montaget/build/_deps
+          key: deps-${{ hashFiles('montaget/CMakeLists.txt') }}
+
+      - name: Konfigurera
+        working-directory: montaget
+        run: cmake -B build -G Xcode
+
+      - name: Bygg (universal, Release)
+        working-directory: montaget
+        run: cmake --build build --config Release --target Montaget_All MORender -- -quiet
+
+      - name: Testfallen
+        working-directory: montaget
+        run: ./build/MORender_artefacts/Release/MORender --test
+
+      - name: Hämta pluginval
+        run: |
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+          unzip -q pluginval.zip
+
+      - name: Validera VST3 och AU
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R montaget/build/Montaget_artefacts/Release/AU/Montaget.component ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar || true
+          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --skip-gui-tests --validate-in-process \
+            --validate montaget/build/Montaget_artefacts/Release/VST3/Montaget.vst3
+          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 5 --skip-gui-tests --validate-in-process \
+            --validate ~/Library/Audio/Plug-Ins/Components/Montaget.component
+
+      - name: Spara byggen
+        uses: actions/upload-artifact@v4
+        with:
+          name: Montaget-macOS
+          path: |
+            montaget/build/Montaget_artefacts/Release/VST3
+            montaget/build/Montaget_artefacts/Release/AU
+            montaget/build/Montaget_artefacts/Release/CLAP
+            montaget/build/Montaget_artefacts/Release/Standalone

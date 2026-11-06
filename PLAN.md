@@ -2,7 +2,7 @@
 
 *Modell MO-85. Samplingsdatorn i en elektronmusikstudio, 1983–85: ljud klipps ur världen, ur radion och fabriken, och spelas som ett instrument.*
 
-**Status:** Planen är skriven 6 november 2026. Fas 0 är inte påbörjad, och Röstverket går före.
+**Status:** Fas 0 påbörjad 6 november 2026. Det tomma instrumentet är tyst, alla parametrar och bussar finns, appen finns och stilprovet är ritat. Grind 0 väntar: Mikke ska godkänna stilprovet och se att instrumentet laddar i Reaper och att appen startar.
 
 Instrumentplugin (VST3, AU, CLAP) och fristående app för macOS. Bygger på samma stack som Analogen och Pianot. Allt i gränssnittet är på svenska.
 
@@ -206,6 +206,29 @@ Regler:
 - **Stilprov:** datorstudion med fosforskärmen (vågform, markörer, punktmatris), platsknapparna, diskettfickan, rattarna och staplarna.
 
 **Grind 0:** Stilprovet är godkänt, pluginet laddar i Reaper och appen startar.
+
+*Pågår. Gjort (6 november 2026):*
+
+- *Repot med CMake (instrument, `aumu`), `local.sh`, `real.sh`, LICENSE och CI-arbetsflödet (inte provkört), och appen (`Source/app/App.cpp`, `krang::app::FristaendeApp`).*
+- *`Source/Parameters.h` har alla 584 parametrar: 36 per plats × 16 (`mo_p01_start` … `mo_p16_solo`) och 8 gemensamma (spelsätt, spelad plats, glid, mono, inspelningens tröskel och längd, utnivå, limiter). Den valda platsen är ingen parameter; den sparas i tillståndet (`vald`).*
+- *Bussarna: Huvud (stereo), fyra stereogrupper (av från början) och en ingång för inspelningen.*
+- *Avvikelse: i AU finns bara huvudutgången, som i Pannrummet och Röstverket. Grupperna och ingången i AU provas i fas 2.*
+- *`MORender --test`: 6 kontroller, och alla går igenom på Linux:*
+  - *tyst på alla utgångar, med MIDI och brus in*
+  - *latensen 0*
+  - *bussarna*
+  - *mono ut och alla grupper*
+  - *tillståndet med vald plats*
+  - *parametrarnas antal och ordning*
+- *`MOSnapshot --stilprov`, `--stilprov-detaljer` och `--tid` finns. Stilprovet visar:*
+  - *beige plåt och svart front*
+  - *fosforskärmen med ett metallslag räknat i kod, markörerna S, L och E, hackningens snitt och punktmatrisskrift (linjeskriften samplad till punkter)*
+  - *platsknapparna med lysdioder, diskettfickan, staplarna, sjusegmenten och klaviaturen med platsernas omfång*
+- *Pluginets panel ritas med samma kod och visar den valda platsens värden. Platsknapparna väljer plats, och skärmen visar TOM PLATS med remsan FAS 0 – EJ INKOPPLAD.*
+- *Ritningstider på Linux: bakgrunden 40 ms och 150 ms (100 % och 200 %, en gång), reglagen 25 ms och 60 ms per omritning. Skärmen ska cachas i fas 3; målet är under 1 % CPU på M1.*
+- *pluginval nivå 5 på VST3 går igenom på Linux, med editortesterna. AU, CLAP, appen och Reaper är inte provade på Macen.*
+- *Rättning (6 november 2026): appen kraschade när den startades på Macen, eftersom den läser ljudkortets ingång utan att ha frågat om mikrofonen (`NSMicrophoneUsageDescription` saknades). CMakeLists.txt har nu `MICROPHONE_PERMISSION_ENABLED` med en text på svenska.*
+- *Ljuden i `sounds/` (sex filer från Freesound) används för att prova arkivet i fas 1. Varje fils licens ska kontrolleras innan något används i ett program, och inget checkas in.*
 
 ### Fas 1 – Rösterna och Arkivet
 
